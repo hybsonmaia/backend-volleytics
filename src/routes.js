@@ -12,6 +12,7 @@ import {
   deleteOrganizador,
   deleteAllOrganizadores,
   login,
+  logout,
 } from "./controllers/OrganizadoresController.js";
 
 import {
@@ -33,6 +34,7 @@ routes.delete("/organizadores/:id", deleteOrganizador);
 routes.delete("/organizadores", deleteAllOrganizadores);
 
 routes.post("/login", login);
+routes.post("/logout", logout);
 
 routes.get("/peladas", getPeladas);
 routes.post("/peladas", createPelada);

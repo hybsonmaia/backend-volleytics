@@ -140,7 +140,9 @@ async function login(request, response) {
   }
 }
 
+router.post('/logout', (req, res) => {
+  return res.json({ message: "Logout realizado com sucesso!" });
+});
 
-
-export { getOrganizadores, createOrganizador, deleteOrganizador, deleteAllOrganizadores, login };
+export { getOrganizadores, createOrganizador, deleteOrganizador, deleteAllOrganizadores, login, logout };
 
