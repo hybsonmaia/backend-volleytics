@@ -140,9 +140,18 @@ async function login(request, response) {
   }
 }
 
-router.post('/logout', (req, res) => {
-  return res.json({ message: "Logout realizado com sucesso!" });
-});
+async function logout(request, response) {
+  try {
+    return response.json({
+      message: "Logout realizado com sucesso!",
+    });
+  } catch (error) {
+    console.error("Erro ao fazer logout:", error);
+    return response.status(500).json({ error: "Erro ao fazer logout" });
+  }
+}
+
+
 
 export { getOrganizadores, createOrganizador, deleteOrganizador, deleteAllOrganizadores, login, logout };
 
