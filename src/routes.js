@@ -13,6 +13,8 @@ import {
   deleteAllOrganizadores,
   login,
   logout,
+  requestPasswordReset, 
+  resetPassword
 } from "./controllers/OrganizadoresController.js";
 
 import {
@@ -35,6 +37,9 @@ routes.delete("/organizadores", deleteAllOrganizadores);
 
 routes.post("/login", login);
 routes.post("/logout", logout);
+
+routes.post('/password-reset-request', requestPasswordReset);
+routes.post('/password-reset', resetPassword);
 
 routes.get("/peladas", getPeladas);
 routes.post("/peladas", createPelada);

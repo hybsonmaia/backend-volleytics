@@ -6,6 +6,9 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
+
+import nodemailer from 'nodemailer';
+
 dotenv.config();
 
 const secretKey = process.env.SECRET_KEY;
@@ -152,6 +155,85 @@ async function logout(request, response) {
 }
 
 
+async function requestPasswordReset(req, res) {
+  const { email } = req.body;
 
-export { getOrganizadores, createOrganizador, deleteOrganizador, deleteAllOrganizadores, login, logout };
+  try {
+    // Verificar formato do e-mail
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'E-mail inválido.' });
+    }
+
+    // Procurar usuário no banco
+    const organizador = await Organizador.findOne({ email });
+    if (!organizador) {
+      return res.status(404).json({ error: 'E-mail não cadastrado.' });
+    }
+
+    // Gerar token de redefinição
+    const resetToken = jwt.sign({ id: organizador._id }, secretKey, { expiresIn: '1h' });
+
+    // Configuração do nodemailer
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail', // Altere o serviço se necessário
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    const resetLink = `http://localhost:3000/novaSenha.html?token=${resetToken}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Redefinição de Senha - Volleytics',
+      html: `
+        <h2>Redefinição de Senha</h2>
+        <p>Olá, ${organizador.nome},</p>
+        <p>Você solicitou a redefinição de sua senha. Clique no link abaixo para redefinir:</p>
+        <a href="${resetLink}" target="_blank">Redefinir Senha</a>
+        <p><strong>O link é válido por 1 hora.</strong></p>
+        <p>Se você não solicitou essa redefinição, ignore este e-mail.</p>
+        <p>Atenciosamente,</p>
+        <p>Equipe Volleytics</p>
+      `,
+    };
+
+    // Enviar o e-mail
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ message: 'E-mail de redefinição enviado com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao solicitar redefinição de senha:', error);
+    return res.status(500).json({ error: 'Erro ao processar sua solicitação. Tente novamente.' });
+  }
+}
+
+
+async function resetPassword(req, res) {
+  const { token, novaSenha } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    const organizador = await Organizador.findById(decoded.id);
+
+    if (!organizador) {
+      return res.status(404).json({ error: 'Token inválido ou expirado.' });
+    }
+
+    // Atualizar senha
+    organizador.senha = await bcrypt.hash(novaSenha, 10);
+    await organizador.save();
+
+    return res.json({ message: 'Senha redefinida com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao redefinir senha:', error);
+    return res.status(500).json({ error: 'Erro ao redefinir senha.' });
+  }
+}
+
+
+export { getOrganizadores, createOrganizador, deleteOrganizador, deleteAllOrganizadores, login, logout, requestPasswordReset, resetPassword };
 
