@@ -183,7 +183,7 @@ async function requestPasswordReset(req, res) {
       },
     });
 
-    const resetLink = `http://localhost:3000/novaSenha.html?token=${resetToken}`;
+    const resetLink = `http://localhost:3000/novaSenha/novaSenha.html?token=${resetToken}`;
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
